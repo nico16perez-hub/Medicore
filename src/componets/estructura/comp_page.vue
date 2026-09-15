@@ -56,8 +56,7 @@ export default {
   },
   methods: {
     refrescar: function(evento){
-      var vm = this;
-      vm.$emit('actualizar');
+      this.$emit('actualizar');
       window.setTimeout(() => evento.detail.complete(), 350);
     }
   }

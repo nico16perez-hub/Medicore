@@ -1,10 +1,11 @@
-import { mount } from '@vue/test-utils'
-import HomePage from '@/views/HomePage.vue'
-import { describe, expect, test } from 'vitest'
+import { mount } from '@vue/test-utils';
+import { describe, expect, test } from 'vitest';
+import InicioPage from '@/views/inicio_page.vue';
 
-describe('HomePage.vue', () => {
-  test('renders home vue', () => {
-    const wrapper = mount(HomePage)
-    expect(wrapper.text()).toMatch('Ready to create an app?')
-  })
-})
+describe('inicio_page.vue', () => {
+  test('renderiza el contenido principal de la pantalla de inicio', () => {
+    const wrapper = mount(InicioPage);
+    expect(wrapper.text()).toContain('Sistema Integral Sanatorial');
+    expect(wrapper.text()).toContain('MediCore');
+  });
+});

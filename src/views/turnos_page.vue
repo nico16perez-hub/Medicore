@@ -1,6 +1,18 @@
 <template>
   <comp-page :titulo="'Mis Turnos'" :mostrar_actualizar="true" @actualizar="cargar">
     <comp-esqueleto v-if="cargando" />
+    <div v-else-if="error" class="estado estado-error">
+      <ion-text color="danger">
+        <h2>No se pudieron cargar los turnos</h2>
+      </ion-text>
+      <p>{{ error }}</p>
+      <ion-button @click="cargar">Reintentar</ion-button>
+    </div>
+    <div v-else-if="turnos.length === 0" class="estado">
+      <h2>No hay turnos cargados</h2>
+      <p>Cuando la API tenga datos, van a aparecer en esta lista.</p>
+      <ion-button fill="outline" @click="cargar">Actualizar</ion-button>
+    </div>
     <ion-list v-else>
       <ion-item v-for="turno in turnos" :key="turno.id">
         <ion-label>
@@ -14,37 +26,77 @@
 </template>
 
 <script>
-import { IonItem, IonLabel, IonList } from '@ionic/vue';
+import { IonButton, IonItem, IonLabel, IonList, IonText } from '@ionic/vue';
 import comp_esqueleto from '@/componets/base/comp_esqueleto.vue';
 import comp_page from '@/componets/estructura/comp_page.vue';
-import { obtener_turnos } from '@/datos/turnos';
+import { turnos_store } from '@/stores/turnos_store';
 
 export default {
   name: 'turnos_page',
   components: {
     CompEsqueleto: comp_esqueleto,
     CompPage: comp_page,
+    IonButton,
     IonItem,
     IonLabel,
-    IonList
+    IonList,
+    IonText
   },
   data() {
     return {
-      cargando: true,
-      turnos: []
+      store: turnos_store
     };
+  },
+  computed: {
+    cargando() {
+      return this.store.cargando;
+    },
+    error() {
+      return this.store.error;
+    },
+    turnos() {
+      return this.store.turnos;
+    }
   },
   mounted() {
     this.cargar();
   },
   methods: {
     cargar: async function() {
-      var vm = this;
-      vm.cargando = true;
-      const respuesta = await obtener_turnos();
-      vm.turnos = respuesta.turnos;
-      vm.cargando = false;
+      await this.store.cargar_turnos();
     }
   }
 };
 </script>
+
+<style scoped>
+.estado {
+  display: flex;
+  min-height: 60vh;
+  flex-direction: column;
+  justify-content: center;
+  padding: 24px;
+  text-align: center;
+}
+
+.estado h2 {
+  margin: 0 0 8px;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.estado p {
+  margin: 0 auto 18px;
+  max-width: 34rem;
+  color: var(--ion-color-medium);
+  line-height: 1.4;
+}
+
+.estado ion-button {
+  align-self: center;
+}
+
+.estado-error p {
+  color: var(--ion-color-danger-shade);
+}
+</style>
