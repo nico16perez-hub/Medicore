@@ -20,6 +20,7 @@ import {
   IonTabButton
 } from '@ionic/vue';
 import { obtener_tabs } from '@/config/navegacion';
+import { sesion_store } from '@/stores/sesion_store';
 
 export default {
   name: 'comp_tabs',
@@ -31,7 +32,8 @@ export default {
   },
   computed: {
     items_tabs(){
-      return obtener_tabs();
+      return obtener_tabs(sesion_store.usuario?.rol?.codigo || null)
+        .filter(item => item.id !== 'notificaciones');
     }
   }
 };

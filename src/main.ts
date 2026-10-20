@@ -3,6 +3,9 @@ import { IonicVue } from '@ionic/vue';
 import App from './App.vue';
 import router from './router'; // Esto funcionará aunque tu archivo sea router/index.ts
 import { aplicar_tema_guardado } from './config/tema'; // O './config/tema.ts' si le pusiste esa extensión
+import { restaurar_registro_push_service } from './services/notificaciones_push_service';
+import { sesion_store } from './stores/sesion_store';
+import { notificaciones_push_store } from './stores/notificaciones_push_store';
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/vue/css/core.css';
@@ -32,4 +35,9 @@ router.isReady().then(() => {
   
   aplicar_tema_guardado();
   app.mount('#app');
-});
+  if (sesion_store.autenticado) {
+    restaurar_registro_push_service().then(resultado => {
+      if (resultado.mensaje) notificaciones_push_store.mensaje = resultado.mensaje;
+    });
+  }
+}); 

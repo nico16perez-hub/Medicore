@@ -12,6 +12,14 @@ public class MedicoreDbContext : DbContext
     public DbSet<Turno> Turnos => Set<Turno>();
     public DbSet<ItemNutricion> PlanNutricional => Set<ItemNutricion>();
     public DbSet<RegistroHistoriaClinica> HistoriaClinica => Set<RegistroHistoriaClinica>();
+    public DbSet<Rol> Roles => Set<Rol>();
+    public DbSet<Usuario> Usuarios => Set<Usuario>();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<RevokedAccessToken> RevokedAccessTokens => Set<RevokedAccessToken>();
+    public DbSet<Notificacion> Notificaciones => Set<Notificacion>();
+    public DbSet<DispositivoPush> DispositivosPush => Set<DispositivoPush>();
+    public DbSet<DisponibilidadDoctor> DisponibilidadesDoctores => Set<DisponibilidadDoctor>();
+    public DbSet<DoctorEspecialidad> DoctoresEspecialidades => Set<DoctorEspecialidad>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -21,6 +29,18 @@ public class MedicoreDbContext : DbContext
         {
             entity.ToTable("turnos");
             entity.HasKey(turno => turno.Id);
+            entity.HasOne<Usuario>()
+                .WithMany()
+                .HasForeignKey(turno => turno.PacienteUsuarioId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Usuario>()
+                .WithMany()
+                .HasForeignKey(turno => turno.DoctorUsuarioId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Usuario>()
+                .WithMany()
+                .HasForeignKey(turno => turno.DoctorPreferidoUsuarioId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             entity.Property(turno => turno.Profesional)
                 .HasMaxLength(120)
@@ -71,6 +91,55 @@ public class MedicoreDbContext : DbContext
                     Estado = "Confirmado"
                 }
             );
+        });
+
+        modelBuilder.Entity<Usuario>(entity =>
+        {
+            entity.Property(usuario => usuario.FotoPerfilNombre)
+                .HasMaxLength(40);
+            entity.Property(usuario => usuario.UbicacionLatitud)
+                .HasColumnType("decimal(10,7)");
+            entity.Property(usuario => usuario.UbicacionLongitud)
+                .HasColumnType("decimal(10,7)");
+            entity.Property(usuario => usuario.UbicacionActualizadaEnUtc);
+        });
+
+        modelBuilder.Entity<DisponibilidadDoctor>(entity =>
+        {
+            entity.ToTable("disponibilidades_doctores");
+            entity.HasKey(disponibilidad => disponibilidad.Id);
+            entity.HasOne<Usuario>()
+                .WithMany()
+                .HasForeignKey(disponibilidad => disponibilidad.DoctorUsuarioId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasIndex(disponibilidad => new
+            {
+                disponibilidad.DoctorUsuarioId,
+                disponibilidad.DiaSemana,
+                disponibilidad.HoraInicio
+            }).IsUnique();
+            entity.Property(disponibilidad => disponibilidad.DiaSemana)
+                .HasConversion<int>()
+                .IsRequired();
+            entity.Property(disponibilidad => disponibilidad.HoraInicio)
+                .HasColumnType("time")
+                .IsRequired();
+            entity.Property(disponibilidad => disponibilidad.HoraFin)
+                .HasColumnType("time")
+                .IsRequired();
+        });
+
+        modelBuilder.Entity<DoctorEspecialidad>(entity =>
+        {
+            entity.ToTable("doctores_especialidades");
+            entity.HasKey(item => new { item.DoctorUsuarioId, item.Especialidad });
+            entity.HasOne<Usuario>()
+                .WithMany()
+                .HasForeignKey(item => item.DoctorUsuarioId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.Property(item => item.Especialidad)
+                .HasMaxLength(120)
+                .IsRequired();
         });
 
         modelBuilder.Entity<ItemNutricion>(entity =>
@@ -126,6 +195,14 @@ public class MedicoreDbContext : DbContext
         {
             entity.ToTable("historia_clinica");
             entity.HasKey(registro => registro.Id);
+            entity.HasOne<Usuario>()
+                .WithMany()
+                .HasForeignKey(registro => registro.PacienteUsuarioId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Usuario>()
+                .WithMany()
+                .HasForeignKey(registro => registro.DoctorUsuarioId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             entity.Property(registro => registro.Fecha)
                 .HasColumnType("date")
@@ -177,6 +254,92 @@ public class MedicoreDbContext : DbContext
                     Notas = "Post-prandial"
                 }
             );
+        });
+
+        modelBuilder.Entity<Rol>(entity =>
+        {
+            entity.ToTable("roles");
+            entity.HasKey(rol => rol.Id);
+            entity.Property(rol => rol.Nombre).HasMaxLength(80).IsRequired();
+            entity.Property(rol => rol.Codigo).HasMaxLength(40).IsRequired();
+            entity.HasIndex(rol => rol.Codigo).IsUnique();
+            entity.HasData(
+                new Rol { Id = 1, Nombre = "Paciente", Codigo = "paciente", Activo = true },
+                new Rol { Id = 2, Nombre = "Doctor", Codigo = "doctor", Activo = true },
+                new Rol { Id = 3, Nombre = "Secretaria", Codigo = "secretaria", Activo = true });
+        });
+
+        modelBuilder.Entity<Usuario>(entity =>
+        {
+            entity.ToTable("usuarios");
+            entity.HasKey(usuario => usuario.Id);
+            entity.Property(usuario => usuario.Email).HasMaxLength(254).IsRequired();
+            entity.Property(usuario => usuario.PasswordHash).HasMaxLength(200).IsRequired();
+            entity.HasIndex(usuario => usuario.Email).IsUnique();
+            entity.HasOne(usuario => usuario.Rol)
+                .WithMany(rol => rol.Usuarios)
+                .HasForeignKey(usuario => usuario.RolId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<RefreshToken>(entity =>
+        {
+            entity.ToTable("refresh_tokens");
+            entity.HasKey(token => token.Id);
+            entity.Property(token => token.TokenHash).HasMaxLength(64).IsRequired();
+            entity.HasIndex(token => token.TokenHash).IsUnique();
+            entity.HasIndex(token => new { token.UsuarioId, token.RevocadoEn, token.ExpiraEn });
+            entity.HasOne(token => token.Usuario)
+                .WithMany(usuario => usuario.RefreshTokens)
+                .HasForeignKey(token => token.UsuarioId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<RevokedAccessToken>(entity =>
+        {
+            entity.ToTable("revoked_access_tokens");
+            entity.HasKey(token => token.Id);
+            entity.Property(token => token.TokenId).HasMaxLength(64).IsRequired();
+            entity.HasIndex(token => new { token.TokenId, token.ExpiraEn });
+            entity.HasIndex(token => token.ExpiraEn);
+        });
+
+        modelBuilder.Entity<Notificacion>(entity =>
+        {
+            entity.ToTable("notificaciones");
+            entity.HasKey(notificacion => notificacion.Id);
+            entity.Property(notificacion => notificacion.Titulo).HasMaxLength(120).IsRequired();
+            entity.Property(notificacion => notificacion.Mensaje).HasMaxLength(500).IsRequired();
+            entity.Property(notificacion => notificacion.CreadaEnUtc).IsRequired();
+            entity.HasIndex(notificacion => new
+            {
+                notificacion.UsuarioId,
+                notificacion.Leida,
+                notificacion.CreadaEnUtc
+            });
+            entity.HasOne<Usuario>()
+                .WithMany()
+                .HasForeignKey(notificacion => notificacion.UsuarioId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(notificacion => notificacion.Turno)
+                .WithMany()
+                .HasForeignKey(notificacion => notificacion.TurnoId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<DispositivoPush>(entity =>
+        {
+            entity.ToTable("dispositivos_push");
+            entity.HasKey(dispositivo => dispositivo.Id);
+            entity.Property(dispositivo => dispositivo.Token).HasColumnType("text").IsRequired();
+            entity.Property(dispositivo => dispositivo.TokenHash).HasMaxLength(64).IsRequired();
+            entity.Property(dispositivo => dispositivo.Plataforma).HasMaxLength(20).IsRequired();
+            entity.HasIndex(dispositivo => dispositivo.TokenHash).IsUnique();
+            entity.HasIndex(dispositivo => dispositivo.UsuarioId);
+            entity.HasOne<Usuario>()
+                .WithMany()
+                .HasForeignKey(dispositivo => dispositivo.UsuarioId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

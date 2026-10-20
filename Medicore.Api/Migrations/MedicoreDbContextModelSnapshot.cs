@@ -22,6 +22,86 @@ namespace Medicore.Api.Migrations
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
+            modelBuilder.Entity("Medicore.Api.Models.DisponibilidadDoctor", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("DiaSemana")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DoctorUsuarioId")
+                        .HasColumnType("int");
+
+                    b.Property<TimeOnly>("HoraFin")
+                        .HasColumnType("time");
+
+                    b.Property<TimeOnly>("HoraInicio")
+                        .HasColumnType("time");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DoctorUsuarioId", "DiaSemana", "HoraInicio")
+                        .IsUnique();
+
+                    b.ToTable("disponibilidades_doctores", (string)null);
+                });
+
+            modelBuilder.Entity("Medicore.Api.Models.DispositivoPush", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("ActualizadoEnUtc")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Plataforma")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.HasIndex("UsuarioId");
+
+                    b.ToTable("dispositivos_push", (string)null);
+                });
+
+            modelBuilder.Entity("Medicore.Api.Models.DoctorEspecialidad", b =>
+                {
+                    b.Property<int>("DoctorUsuarioId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Especialidad")
+                        .HasMaxLength(120)
+                        .HasColumnType("varchar(120)");
+
+                    b.HasKey("DoctorUsuarioId", "Especialidad");
+
+                    b.ToTable("doctores_especialidades", (string)null);
+                });
+
             modelBuilder.Entity("Medicore.Api.Models.ItemNutricion", b =>
                 {
                     b.Property<int>("Id")
@@ -80,6 +160,80 @@ namespace Medicore.Api.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Medicore.Api.Models.Notificacion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreadaEnUtc")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("Leida")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Mensaje")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<string>("Titulo")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("varchar(120)");
+
+                    b.Property<int?>("TurnoId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TurnoId");
+
+                    b.HasIndex("UsuarioId", "Leida", "CreadaEnUtc");
+
+                    b.ToTable("notificaciones", (string)null);
+                });
+
+            modelBuilder.Entity("Medicore.Api.Models.RefreshToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreadoEn")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("ExpiraEn")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("RevocadoEn")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.HasIndex("UsuarioId", "RevocadoEn", "ExpiraEn");
+
+                    b.ToTable("refresh_tokens", (string)null);
+                });
+
             modelBuilder.Entity("Medicore.Api.Models.RegistroHistoriaClinica", b =>
                 {
                     b.Property<int>("Id")
@@ -88,6 +242,9 @@ namespace Medicore.Api.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("DoctorUsuarioId")
+                        .HasColumnType("int");
+
                     b.Property<DateOnly>("Fecha")
                         .HasColumnType("date");
 
@@ -95,6 +252,9 @@ namespace Medicore.Api.Migrations
                         .IsRequired()
                         .HasMaxLength(240)
                         .HasColumnType("varchar(240)");
+
+                    b.Property<int?>("PacienteUsuarioId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Tipo")
                         .IsRequired()
@@ -107,6 +267,10 @@ namespace Medicore.Api.Migrations
                         .HasColumnType("varchar(80)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("DoctorUsuarioId");
+
+                    b.HasIndex("PacienteUsuarioId");
 
                     b.ToTable("historia_clinica", (string)null);
 
@@ -145,6 +309,83 @@ namespace Medicore.Api.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Medicore.Api.Models.RevokedAccessToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("ExpiraEn")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("TokenId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExpiraEn");
+
+                    b.HasIndex("TokenId", "ExpiraEn");
+
+                    b.ToTable("revoked_access_tokens", (string)null);
+                });
+
+            modelBuilder.Entity("Medicore.Api.Models.Rol", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Codigo")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("varchar(40)");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("varchar(80)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Codigo")
+                        .IsUnique();
+
+                    b.ToTable("roles", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Activo = true,
+                            Codigo = "paciente",
+                            Nombre = "Paciente"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Activo = true,
+                            Codigo = "doctor",
+                            Nombre = "Doctor"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Activo = true,
+                            Codigo = "secretaria",
+                            Nombre = "Secretaria"
+                        });
+                });
+
             modelBuilder.Entity("Medicore.Api.Models.Turno", b =>
                 {
                     b.Property<int>("Id")
@@ -152,6 +393,12 @@ namespace Medicore.Api.Migrations
                         .HasColumnType("int");
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("DoctorPreferidoUsuarioId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("DoctorUsuarioId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Especialidad")
                         .IsRequired()
@@ -169,12 +416,21 @@ namespace Medicore.Api.Migrations
                     b.Property<TimeOnly>("Hora")
                         .HasColumnType("time");
 
+                    b.Property<int?>("PacienteUsuarioId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Profesional")
                         .IsRequired()
                         .HasMaxLength(120)
                         .HasColumnType("varchar(120)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("DoctorPreferidoUsuarioId");
+
+                    b.HasIndex("DoctorUsuarioId");
+
+                    b.HasIndex("PacienteUsuarioId");
 
                     b.ToTable("turnos", (string)null);
 
@@ -206,6 +462,158 @@ namespace Medicore.Api.Migrations
                             Hora = new TimeOnly(9, 15, 0),
                             Profesional = "Dra. Fernandez"
                         });
+                });
+
+            modelBuilder.Entity("Medicore.Api.Models.Usuario", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(254)
+                        .HasColumnType("varchar(254)");
+
+                    b.Property<string>("FotoPerfilNombre")
+                        .HasMaxLength(40)
+                        .HasColumnType("varchar(40)");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<int?>("RolId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UbicacionActualizadaEnUtc")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<decimal?>("UbicacionLatitud")
+                        .HasColumnType("decimal(10,7)");
+
+                    b.Property<decimal?>("UbicacionLongitud")
+                        .HasColumnType("decimal(10,7)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.HasIndex("RolId");
+
+                    b.ToTable("usuarios", (string)null);
+                });
+
+            modelBuilder.Entity("Medicore.Api.Models.DisponibilidadDoctor", b =>
+                {
+                    b.HasOne("Medicore.Api.Models.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("DoctorUsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Medicore.Api.Models.DispositivoPush", b =>
+                {
+                    b.HasOne("Medicore.Api.Models.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Medicore.Api.Models.DoctorEspecialidad", b =>
+                {
+                    b.HasOne("Medicore.Api.Models.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("DoctorUsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Medicore.Api.Models.Notificacion", b =>
+                {
+                    b.HasOne("Medicore.Api.Models.Turno", "Turno")
+                        .WithMany()
+                        .HasForeignKey("TurnoId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Medicore.Api.Models.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Turno");
+                });
+
+            modelBuilder.Entity("Medicore.Api.Models.RefreshToken", b =>
+                {
+                    b.HasOne("Medicore.Api.Models.Usuario", "Usuario")
+                        .WithMany("RefreshTokens")
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("Medicore.Api.Models.RegistroHistoriaClinica", b =>
+                {
+                    b.HasOne("Medicore.Api.Models.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("DoctorUsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Medicore.Api.Models.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("PacienteUsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("Medicore.Api.Models.Turno", b =>
+                {
+                    b.HasOne("Medicore.Api.Models.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("DoctorPreferidoUsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Medicore.Api.Models.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("DoctorUsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Medicore.Api.Models.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("PacienteUsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("Medicore.Api.Models.Usuario", b =>
+                {
+                    b.HasOne("Medicore.Api.Models.Rol", "Rol")
+                        .WithMany("Usuarios")
+                        .HasForeignKey("RolId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Rol");
+                });
+
+            modelBuilder.Entity("Medicore.Api.Models.Rol", b =>
+                {
+                    b.Navigation("Usuarios");
+                });
+
+            modelBuilder.Entity("Medicore.Api.Models.Usuario", b =>
+                {
+                    b.Navigation("RefreshTokens");
                 });
 #pragma warning restore 612, 618
         }

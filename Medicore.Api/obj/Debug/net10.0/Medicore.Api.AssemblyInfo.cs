@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Medicore.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1ab1b1aea4595b8e4ef64435e736f266138bafe9")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+74ff38c2a0fc12f466a6df307feb2beb646431e1")]
 [assembly: System.Reflection.AssemblyProductAttribute("Medicore.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Medicore.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

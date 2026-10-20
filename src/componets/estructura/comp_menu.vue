@@ -21,6 +21,12 @@
           >
             <ion-icon slot="start" :icon="item.icono" />
             <ion-label>{{ item.titulo }}</ion-label>
+            <ion-badge
+              v-if="item.id === 'notificaciones' && notificaciones_store.totalNoLeidas > 0"
+              color="danger"
+            >
+              {{ notificaciones_store.totalNoLeidas > 99 ? '99+' : notificaciones_store.totalNoLeidas }}
+            </ion-badge>
           </ion-item>
         </ion-menu-toggle>
       </ion-list>
@@ -31,6 +37,7 @@
 <script>
 import {
   IonContent,
+  IonBadge,
   IonIcon,
   IonItem,
   IonLabel,
@@ -40,11 +47,14 @@ import {
   IonMenuToggle
 } from '@ionic/vue';
 import { obtener_grupos_menu } from '@/config/navegacion';
+import { notificaciones_store } from '@/stores/notificaciones_store';
+import { sesion_store } from '@/stores/sesion_store';
 
 export default {
   name: 'comp_menu',
   components: {
     IonContent,
+    IonBadge,
     IonIcon,
     IonItem,
     IonLabel,
@@ -59,9 +69,26 @@ export default {
       required: true
     }
   },
+  data() {
+    return { notificaciones_store, actualizador_notificaciones: null };
+  },
+  mounted() {
+    this.notificaciones_store.cargar_total_no_leidas();
+    this.actualizador_notificaciones = window.setInterval(() => {
+      this.notificaciones_store.cargar_total_no_leidas();
+    }, 30000);
+  },
+  beforeUnmount() {
+    if (this.actualizador_notificaciones !== null) {
+      window.clearInterval(this.actualizador_notificaciones);
+    }
+  },
   computed: {
     grupos_menu(){
-      return obtener_grupos_menu();
+      return obtener_grupos_menu(this.rol_actual);
+    },
+    rol_actual(){
+      return sesion_store.usuario?.rol?.codigo || null;
     }
   }
 };
